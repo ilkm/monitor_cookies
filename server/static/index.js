@@ -248,6 +248,12 @@ $(document).on('click', '#btn-add-row', function () {
     '<sl-button size="small" variant="default" class="btn-cancel-row">取消</sl-button>' +
     '</td>');
   $('#sites-table-tbody').prepend($tr);
+
+  // 让 Shoelace 自动注册新插入的 sl-select
+  if (window.Shoelace && window.Shoelace.autoloader) {
+    window.Shoelace.autoloader();
+  }
+
   // 渲染媒体类型和账号类型下拉框
   const $mediaSelect = $tr.find('.edit-media-type');
   const $accountTypeSelect = $tr.find('.edit-account-type');
@@ -261,6 +267,11 @@ $(document).on('click', '#btn-add-row', function () {
       $accountTypeSelect.append(`<sl-option value="${code}">${info.name}</sl-option>`);
     });
   }
+
+  // 再次触发autoloader，确保sl-option生效
+  if (window.Shoelace && window.Shoelace.autoloader) {
+    window.Shoelace.autoloader();
+  }
 });
 
 // 取消添加
@@ -273,8 +284,9 @@ $(document).on('click', '.btn-save-row', function () {
   const $tr = $(this).closest('tr');
   // 获取输入值
   const user_id = $tr.find('.edit-user-id').val();
-  const code = $tr.find('.edit-media-type').val();
-  const account_type = $tr.find('.edit-account-type').val();
+  // 用原生DOM获取sl-select的value
+  const code = $tr.find('.edit-media-type')[0]?.value;
+  const account_type = $tr.find('.edit-account-type')[0]?.value;
   const account = $tr.find('.edit-account').val();
   const password = $tr.find('.edit-password').val();
   const contact = $tr.find('.edit-contact').val();
