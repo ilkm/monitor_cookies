@@ -1,0 +1,23 @@
+/* Excel风格表格样式 */
+#sites-table {
+  border-collapse: collapse;
+  width: 100%;
+  background: #fff;
+  font-size: 14px;
+}
+#sites-table th, #sites-table td {
+  border: 1px solid #d0d7de;
+  padding: 8px 6px;
+  text-align: center;
+}
+#sites-table thead th {
+  background: #f6f8fa;
+  font-weight: bold;
+  color: #222;
+}
+#sites-table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+#sites-table tbody tr:hover {
+  background: #e6f7ff;
+} 
