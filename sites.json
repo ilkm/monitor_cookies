@@ -1,0 +1,144 @@
+{
+    "users": [
+        {
+            "user_id": 1,
+            "sites": [
+                {
+                    "code": 8,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 1,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 2,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                }
+            ]
+        },
+        {
+            "user_id": 2,
+            "sites": [
+                {
+                    "code": 8,
+                    "account_type": 1,
+                    "account": "18146535093",
+                    "password": "123456",
+                    "contact": "小红",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 1,
+                    "account_type": 1,
+                    "account": "18146535093",
+                    "password": "123456",
+                    "contact": "小红",
+                    "description": "测试剧场"
+                }
+            ]
+        },
+        {
+            "user_id": 3,
+            "sites": [
+                {
+                    "code": 8,
+                    "account_type": 1,
+                    "account": "18146533528",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                }
+            ]
+        },
+        {
+            "user_id": 4,
+            "sites": [
+                {
+                    "code": 8,
+                    "account_type": 1,
+                    "account": "18146536758",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                }
+            ]
+        }
+    ],
+    "config": {
+        "cookie_api": "http://127.0.0.1:8000/api/refreshCookie",
+        "headless_mode": false,
+        "performance_mode": false,
+        "media_codes": {
+            "1": {
+                "name": "抖音内容合作平台",
+                "url": "https://content.douyin.com/",
+                "domains": [
+                    ".douyin.com"
+                ]
+            },
+            "2": {
+                "name": "快手经营者平台",
+                "url": "https://kdj.kuaishou.com/",
+                "domains": [
+                    ".kuaishou.com"
+                ]
+            },
+            "3": {
+                "name": "番茄内容合作平台",
+                "url": "https://novelcp.toutiao.com/",
+                "domains": [
+                    ".toutiao.com"
+                ]
+            },
+            "4": {
+                "name": "百度短剧开放平台",
+                "url": "https://baijiahao.baidu.com/",
+                "domains": [
+                    ".baidu.com"
+                ]
+            },
+            "5": {
+                "name": "BiliBili创作中心&充电开放平台",
+                "url": "https://member.bilibili.com/",
+                "domains": [
+                    ".bilibili.com"
+                ]
+            },
+            "6": {
+                "name": "快手三方分发",
+                "url": "https://kdj.kuaishou.com/",
+                "domains": [
+                    ".kuaishou.com"
+                ]
+            },
+            "7": {
+                "name": "支付宝三方分发",
+                "url": "https://b.alipay.com/",
+                "domains": [
+                    ".alipay.com"
+                ]
+            },
+            "8": {
+                "name": "腾讯视频三方分发",
+                "url": "https://mp.v.qq.com/",
+                "domains": [
+                    ".v.qq.com",
+                    ".qq.com"
+                ]
+            }
+        }
+    }
+}

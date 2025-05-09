@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cookies监控系统</title>
+  <!-- Shoelace 组件库样式和JS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/themes/light.css" />
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/shoelace-autoloader.js"></script>
+</head>
+<body>
+  <!-- Header 区域 -->
+  <div class="section" style="background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+    <div class="main-container" style="display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;">
+      <h1 style="font-size:1.5rem;font-weight:bold;">Cookies监控系统</h1>
+      <div style="display:flex;gap:0.5rem;">
+        <sl-button variant="success" id="btn-start-monitor">启动Cookies监控</sl-button>
+        <sl-button variant="info" id="btn-restart-monitor" class="is-hidden">重启Cookies监控</sl-button>
+        <sl-button variant="danger" id="btn-stop-monitor" class="is-hidden">关闭Cookies监控</sl-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 筛选区域 -->
+  <div class="section">
+    <div class="main-container" style="max-width:1200px;margin:0 auto;">
+      <form id="filter-form">
+        <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;">
+          <sl-input name="account" size="small" placeholder="账号/手机号" clearable prefix="<sl-icon name='person'></sl-icon>" style="flex:1 1 180px;min-width:150px;"></sl-input>
+          <sl-input name="contact" size="small" placeholder="负责人" clearable prefix="<sl-icon name='id-badge'></sl-icon>" style="flex:1 1 180px;min-width:150px;"></sl-input>
+          <sl-input name="description" size="small" placeholder="描述" clearable prefix="<sl-icon name='info-circle'></sl-icon>" style="flex:1 1 180px;min-width:150px;"></sl-input>
+          <sl-select name="media_type" multiple clearable placeholder="请选择媒体类型" size="small" style="flex:1 1 180px;min-width:150px;">
+            <sl-option value="1">抖音</sl-option>
+            <sl-option value="2">快手</sl-option>
+            <sl-option value="3">番茄</sl-option>
+            <sl-option value="4">百度</sl-option>
+            <sl-option value="5">BiliBili</sl-option>
+            <sl-option value="6">快手三方分发</sl-option>
+          </sl-select>
+          <sl-select name="account_type" multiple clearable placeholder="请选择账号类型" size="small" style="flex:1 1 180px;min-width:150px;">
+            <sl-option value="1">抖音</sl-option>
+            <sl-option value="2">快手</sl-option>
+            <sl-option value="3">番茄</sl-option>
+            <sl-option value="4">百度</sl-option>
+            <sl-option value="5">BiliBili</sl-option>
+            <sl-option value="6">快手三方分发</sl-option>
+          </sl-select>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <sl-button variant="primary" type="submit"><sl-icon name="search"></sl-icon>筛选</sl-button>
+            <sl-button variant="default" type="reset"><sl-icon name="arrow-counterclockwise"></sl-icon>重置</sl-button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 表格区域 -->
+  <div class="section">
+    <div class="main-container" style="max-width:1200px;margin:0 auto;">
+      <div style="background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.04);padding:1rem;">
+        <sl-table id="sites-table" style="width:100%;">
+          <thead>
+            <tr>
+              <th>用户ID</th>
+              <th>媒体类型</th>
+              <th>账号/手机号</th>
+              <th>负责人</th>
+              <th>描述</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 动态填充表格数据 -->
+          </tbody>
+        </sl-table>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.5rem;margin-top:1rem;">
+          <sl-pagination id="pagination" total="100" page="1" page-size="10" size="small"></sl-pagination>
+          <sl-select id="page-size-select" size="small" style="width:120px;">
+            <sl-option value="10">每页10条</sl-option>
+            <sl-option value="20">每页20条</sl-option>
+            <sl-option value="50">每页50条</sl-option>
+          </sl-select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

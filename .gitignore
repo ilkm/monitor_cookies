@@ -1,0 +1,7 @@
+/target
+/user_data
+/venv
+*.log
+.idea
+backups
+__pycache__
