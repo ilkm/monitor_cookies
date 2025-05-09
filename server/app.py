@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from browser_manager.manager import BrowserManager
 import server.monitor_task
 import asyncio
+from fastapi.responses import RedirectResponse
 
 # 获取当前文件（app.py）所在目录的上一级目录（即项目根目录）
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -105,11 +106,7 @@ app.mount("/static", StaticFiles(directory="server/static", html=True), name="st
 @app.get("/api/sites")
 def get_sites():
     """聚合返回所有站点。"""
-    data = load_all_data()
-    all_sites = []
-    for user in data.get("users", []):
-        all_sites.extend(user.get("sites", []))
-    return all_sites
+    return load_all_data()
 
 @app.get("/api/config")
 def get_config():
@@ -291,6 +288,13 @@ async def api_monitor_fetch_status(request: Request):
         return {"code": 404, "exists": False, "running": False, "msg": "未找到该监控任务"}
     running = not task.done() and not task.cancelled()
     return {"code": 200, "exists": True, "running": running, "msg": f"监控任务{'正在运行' if running else '已停止'}: {task_key}"}
+
+@app.get("/")
+def root():
+    """
+    访问根路径时自动重定向到前端静态页面
+    """
+    return RedirectResponse(url="/static")
 
 if __name__ == "__main__":
     import uvicorn

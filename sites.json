@@ -81,6 +81,14 @@
         "cookie_api": "http://127.0.0.1:8000/api/refreshCookie",
         "headless_mode": false,
         "performance_mode": false,
+        "account_types": {
+            "1": {
+                "name": "主账号"
+            },
+            "2": {
+                "name": "子账号"
+            }
+        },
         "media_codes": {
             "1": {
                 "name": "抖音内容合作平台",

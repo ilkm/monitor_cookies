@@ -7,6 +7,8 @@
   <!-- Shoelace 组件库样式和JS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/themes/light.css" />
   <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/shoelace-autoloader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <link rel="stylesheet" href="/static/index.css">
 </head>
 <body>
   <!-- Header 区域 -->
@@ -26,24 +28,14 @@
     <div class="main-container" style="max-width:1200px;margin:0 auto;">
       <form id="filter-form">
         <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;">
-          <sl-input name="account" size="small" placeholder="账号/手机号" clearable prefix="<sl-icon name='person'></sl-icon>" style="flex:1 1 180px;min-width:150px;"></sl-input>
-          <sl-input name="contact" size="small" placeholder="负责人" clearable prefix="<sl-icon name='id-badge'></sl-icon>" style="flex:1 1 180px;min-width:150px;"></sl-input>
-          <sl-input name="description" size="small" placeholder="描述" clearable prefix="<sl-icon name='info-circle'></sl-icon>" style="flex:1 1 180px;min-width:150px;"></sl-input>
+          <sl-input name="account" size="small" placeholder="账号/手机号" clearable prefix="<sl-icon name='person'></sl-icon>" style="flex:1 1 180px;min-width:150px;" autocomplete="off"></sl-input>
+          <sl-input name="contact" size="small" placeholder="负责人" clearable prefix="<sl-icon name='id-badge'></sl-icon>" style="flex:1 1 180px;min-width:150px;" autocomplete="off"></sl-input>
+          <sl-input name="description" size="small" placeholder="描述" clearable prefix="<sl-icon name='info-circle'></sl-icon>" style="flex:1 1 180px;min-width:150px;" autocomplete="off"></sl-input>
           <sl-select name="media_type" multiple clearable placeholder="请选择媒体类型" size="small" style="flex:1 1 180px;min-width:150px;">
-            <sl-option value="1">抖音</sl-option>
-            <sl-option value="2">快手</sl-option>
-            <sl-option value="3">番茄</sl-option>
-            <sl-option value="4">百度</sl-option>
-            <sl-option value="5">BiliBili</sl-option>
-            <sl-option value="6">快手三方分发</sl-option>
+            <!-- 动态填充 -->
           </sl-select>
           <sl-select name="account_type" multiple clearable placeholder="请选择账号类型" size="small" style="flex:1 1 180px;min-width:150px;">
-            <sl-option value="1">抖音</sl-option>
-            <sl-option value="2">快手</sl-option>
-            <sl-option value="3">番茄</sl-option>
-            <sl-option value="4">百度</sl-option>
-            <sl-option value="5">BiliBili</sl-option>
-            <sl-option value="6">快手三方分发</sl-option>
+            <!-- 动态填充 -->
           </sl-select>
           <div style="display:flex;gap:0.5rem;align-items:center;">
             <sl-button variant="primary" type="submit"><sl-icon name="search"></sl-icon>筛选</sl-button>
@@ -58,7 +50,7 @@
   <div class="section">
     <div class="main-container" style="max-width:1200px;margin:0 auto;">
       <div style="background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.04);padding:1rem;">
-        <sl-table id="sites-table" style="width:100%;">
+        <table id="sites-table" style="width:100%;">
           <thead>
             <tr>
               <th>用户ID</th>
@@ -70,10 +62,10 @@
               <th>操作</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="sites-table-tbody">
             <!-- 动态填充表格数据 -->
           </tbody>
-        </sl-table>
+        </table>
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.5rem;margin-top:1rem;">
           <sl-pagination id="pagination" total="100" page="1" page-size="10" size="small"></sl-pagination>
           <sl-select id="page-size-select" size="small" style="width:120px;">
@@ -86,6 +78,6 @@
     </div>
   </div>
 
-  <script src="main.js"></script>
+  <script src="/static/index.js"></script>
 </body>
 </html>
