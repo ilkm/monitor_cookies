@@ -13,7 +13,7 @@
 <body>
   <!-- Header 区域 -->
   <div class="section" style="background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.03);">
-    <div class="main-container" style="display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;">
+    <div class="main-container" style="display:flex;align-items:center;justify-content:space-between;max-width:100vw;margin:0 auto;">
       <h1 style="font-size:1.5rem;font-weight:bold;">Cookies监控系统</h1>
       <div style="display:flex;gap:0.5rem;">
         <sl-button variant="success" id="btn-start-monitor">启动Cookies监控</sl-button>
@@ -25,7 +25,7 @@
 
   <!-- 筛选区域 -->
   <div class="section">
-    <div class="main-container" style="max-width:1200px;margin:0 auto;">
+    <div class="main-container" style="max-width:100vw;margin:0 auto;">
       <form id="filter-form">
         <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;">
           <sl-input name="account" size="small" placeholder="账号/手机号" clearable prefix="<sl-icon name='person'></sl-icon>" style="flex:1 1 180px;min-width:150px;" autocomplete="off"></sl-input>
@@ -48,14 +48,16 @@
 
   <!-- 表格区域 -->
   <div class="section">
-    <div class="main-container" style="max-width:1200px;margin:0 auto;">
+    <div class="main-container" style="max-width:100vw;margin:0 auto;">
       <div style="background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.04);padding:1rem;">
         <table id="sites-table" style="width:100%;">
           <thead>
             <tr>
               <th>用户ID</th>
               <th>媒体类型</th>
+              <th>账号类型</th>
               <th>账号/手机号</th>
+              <th>密码</th>
               <th>负责人</th>
               <th>描述</th>
               <th>状态</th>
@@ -66,13 +68,11 @@
             <!-- 动态填充表格数据 -->
           </tbody>
         </table>
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.5rem;margin-top:1rem;">
-          <sl-pagination id="pagination" total="100" page="1" page-size="10" size="small"></sl-pagination>
-          <sl-select id="page-size-select" size="small" style="width:120px;">
-            <sl-option value="10">每页10条</sl-option>
-            <sl-option value="20">每页20条</sl-option>
-            <sl-option value="50">每页50条</sl-option>
-          </sl-select>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-top:1rem;">
+          <sl-button id="btn-add-row" variant="primary">添加一行</sl-button>
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <sl-pagination id="pagination" total="100" page="1" page-size="10" size="small"></sl-pagination>
+          </div>
         </div>
       </div>
     </div>

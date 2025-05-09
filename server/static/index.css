@@ -20,4 +20,21 @@
 }
 #sites-table tbody tr:hover {
   background: #e6f7ff;
+}
+
+/* 筛选区域和表格区域铺满全屏 */
+.section, .main-container {
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 表格外层去除最大宽度限制 */
+.main-container {
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0 auto;
+  padding: 0;
 } 

@@ -26,6 +26,131 @@
                     "password": "123456",
                     "contact": "小明",
                     "description": "测试剧场"
+                },
+
+                {
+                    "code": 8,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 1,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 2,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+
+                {
+                    "code": 8,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 1,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 2,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+
+                {
+                    "code": 8,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 1,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 2,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+
+                {
+                    "code": 8,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 1,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 2,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+
+                {
+                    "code": 8,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 1,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
+                },
+                {
+                    "code": 2,
+                    "account_type": 1,
+                    "account": "15128629585",
+                    "password": "123456",
+                    "contact": "小明",
+                    "description": "测试剧场"
                 }
             ]
         },
