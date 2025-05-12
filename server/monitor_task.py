@@ -21,12 +21,6 @@ async def monitor_fetch_requests(browser_manager, user_id: str, site_code: str, 
     :return: 捕获到的所有请求信息列表
     """
     page = await browser_manager.get_page(user_id, site_code, url)
-    # 跳转到指定url（如果get_page未自动跳转，可强制跳转）
-    try:
-        if page.url != url:
-            await page.goto(url, timeout=20000)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"页面跳转失败: {e}")
     requests = []
 
     def handle_request(request):
