@@ -173,6 +173,8 @@ async def api_monitor_start(request: Request):
     task_key = f"{user_id}:{site_code}:{media['url']}"
     # 检查是否已存在
     if hasattr(request.app.state, "monitor_tasks") and task_key in request.app.state.monitor_tasks:
+        # 调用get_page
+        page = await request.app.state.browser_manager.get_page(str(user_id), str(site_code), media['url'])
         raise HTTPException(status_code=400, detail="该监控任务已存在")
     # 启动任务
     task = asyncio.create_task(
