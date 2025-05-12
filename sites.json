@@ -218,6 +218,7 @@
             "1": {
                 "name": "抖音内容合作平台",
                 "url": "https://content.douyin.com/",
+                "host": ":authority",
                 "domains": [
                     ".douyin.com"
                 ]
@@ -225,6 +226,7 @@
             "2": {
                 "name": "快手经营者平台",
                 "url": "https://kdj.kuaishou.com/",
+                "host": ":authority",
                 "domains": [
                     ".kuaishou.com"
                 ]
@@ -232,6 +234,7 @@
             "3": {
                 "name": "番茄内容合作平台",
                 "url": "https://novelcp.toutiao.com/",
+                "host": ":authority",
                 "domains": [
                     ".toutiao.com"
                 ]
@@ -239,6 +242,7 @@
             "4": {
                 "name": "百度短剧开放平台",
                 "url": "https://baijiahao.baidu.com/",
+                "host": ":authority",
                 "domains": [
                     ".baidu.com"
                 ]
@@ -246,6 +250,7 @@
             "5": {
                 "name": "BiliBili创作中心&充电开放平台",
                 "url": "https://member.bilibili.com/",
+                "host": ":authority",
                 "domains": [
                     ".bilibili.com"
                 ]
@@ -253,6 +258,7 @@
             "6": {
                 "name": "快手三方分发",
                 "url": "https://kdj.kuaishou.com/",
+                "host": ":authority",
                 "domains": [
                     ".kuaishou.com"
                 ]
@@ -260,6 +266,7 @@
             "7": {
                 "name": "支付宝三方分发",
                 "url": "https://b.alipay.com/",
+                "host": ":authority",
                 "domains": [
                     ".alipay.com"
                 ]
@@ -267,10 +274,8 @@
             "8": {
                 "name": "腾讯视频三方分发",
                 "url": "https://mp.v.qq.com/",
-                "domains": [
-                    ".v.qq.com",
-                    ".qq.com"
-                ]
+                "host": ":authority",
+                "domains": [".qq.com"]
             }
         }
     }
