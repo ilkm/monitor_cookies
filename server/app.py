@@ -19,9 +19,11 @@ os.makedirs(BASE_DIR, exist_ok=True)
 # 页面刷新定时任务
 async def periodic_refresh_pages(app):
     """每5分钟刷新一次所有正在监控的页面"""
+    config = get_config_item("config")
+    refresh_interval = config.get("refresh_interval", 5)
     while True:
         try:
-            await asyncio.sleep(300)  # 5分钟 = 300秒
+            await asyncio.sleep(refresh_interval)  # 5分钟 = 300秒
             tasks = getattr(app.state, "monitor_tasks", {})
             pages = getattr(app.state, "monitor_pages", {})
             
@@ -173,6 +175,17 @@ def get_users():
 
 # ------------------ browser 操作相关接口 ------------------
 
+async def _cleanup_browser_state(request: Request):
+    """清理所有监控任务和页面引用"""
+    tasks = getattr(request.app.state, "monitor_tasks", {})
+    for task_key in list(tasks.keys()):
+        task = tasks[task_key]
+        task.cancel()
+        del tasks[task_key]
+    pages = getattr(request.app.state, "monitor_pages", {})
+    for page_key in list(pages.keys()):
+        del pages[page_key]
+
 @app.post("/api/browser/start")
 async def api_start_browser(request: Request):
     """启动浏览器，可选headless参数。"""
@@ -184,12 +197,14 @@ async def api_start_browser(request: Request):
 @app.post("/api/browser/stop")
 async def api_stop_browser(request: Request):
     """关闭浏览器。"""
+    await _cleanup_browser_state(request)
     await request.app.state.browser_manager.stop_browser()
     return {"msg": "浏览器已关闭"}
 
 @app.post("/api/browser/restart")
 async def api_restart_browser(request: Request):
     """重启浏览器。"""
+    await _cleanup_browser_state(request)
     await request.app.state.browser_manager.restart_browser()
     return {"msg": "浏览器已重启"}
 
