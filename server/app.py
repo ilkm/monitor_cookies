@@ -11,11 +11,10 @@ import asyncio
 import traceback
 from fastapi.responses import RedirectResponse
 
-# 获取当前文件（app.py）所在目录的上一级目录（即项目根目录）
+# 获取配置文件路径
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG_DIR = BASE_DIR  # 现在config目录就是根目录
-SITES_CONFIG_FILE = os.path.join(CONFIG_DIR, "sites.json")
-os.makedirs(CONFIG_DIR, exist_ok=True)
+SITES_CONFIG_FILE = os.path.join(BASE_DIR, "sites.json")
+os.makedirs(BASE_DIR, exist_ok=True)
 
 # 页面刷新定时任务
 async def periodic_refresh_pages(app):
@@ -23,8 +22,6 @@ async def periodic_refresh_pages(app):
     while True:
         try:
             await asyncio.sleep(300)  # 5分钟 = 300秒
-            
-            # 获取所有监控任务
             tasks = getattr(app.state, "monitor_tasks", {})
             pages = getattr(app.state, "monitor_pages", {})
             
@@ -34,18 +31,12 @@ async def periodic_refresh_pages(app):
                 
             print(f"[定时刷新] 开始刷新 {len(pages)} 个页面")
             
-            # 遍历所有页面并刷新
             for task_key, page in list(pages.items()):
                 try:
-                    # 检查对应的任务是否仍在运行
                     task = tasks.get(task_key)
                     if task and not task.done() and not task.cancelled():
-                        print(f"[定时刷新] 刷新页面: {task_key}")
                         await page.reload()
-                        print(f"[定时刷新] 页面刷新成功: {task_key}")
                     else:
-                        # 任务已结束，从页面字典中移除
-                        print(f"[定时刷新] 任务已结束，移除页面: {task_key}")
                         pages.pop(task_key, None)
                 except Exception as e:
                     print(f"[异常] 刷新页面失败: {task_key}, 错误: {e}\n{traceback.format_exc()}")
@@ -54,25 +45,24 @@ async def periodic_refresh_pages(app):
             break
         except Exception as e:
             print(f"[异常] 定时刷新任务异常: {e}\n{traceback.format_exc()}")
-            # 出错后等待一段时间再继续
             await asyncio.sleep(60)
 
 class SiteConfig(BaseModel):
-    code: int  # 站点编码
-    account_type: int  # 账号类型
-    account: str  # 账号/手机号
-    password: str  # 密码
-    contact: str  # 负责人
-    description: Optional[str] = None  # 描述，可选
+    code: int
+    account_type: int
+    account: str
+    password: str
+    contact: str
+    description: Optional[str] = None
 
 class UserConfig(BaseModel):
-    user_id: int  # 用户ID
-    sites: List[SiteConfig]  # 该用户下的所有站点
+    user_id: int
+    sites: List[SiteConfig]
 
 class MediaTypeConfig(BaseModel):
-    name: str  # 媒体类型名称
-    url: str  # 平台URL
-    domains: List[str]  # 域名列表
+    name: str
+    url: str
+    domains: List[str]
 
 class GlobalConfig(BaseModel):
     cookie_api: str
@@ -90,8 +80,7 @@ def load_all_data() -> dict:
         return {}
     try:
         with open(SITES_CONFIG_FILE, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        return data
+            return json.load(f)
     except Exception as e:
         print(f"Error loading {SITES_CONFIG_FILE}: {e}")
         return {}
@@ -104,25 +93,28 @@ def save_all_data(data: dict):
     except Exception as e:
         print(f"Error saving {SITES_CONFIG_FILE}: {e}")
 
-def get_user_config(user_id: int) -> UserConfig:
-    """根据用户ID获取用户配置。"""
+def get_config_item(item_type, item_id=None, sub_item_id=None):
+    """统一获取配置项的函数"""
     data = load_all_data()
-    return next((user for user in data.get("users", []) if user["user_id"] == user_id), None)
-
-def get_site_config(user_id: int, site_code: int) -> SiteConfig:
-    """根据用户ID和站点编码获取站点配置。"""
-    user = get_user_config(user_id)
-    return next((site for site in user.get("sites", []) if site["code"] == site_code), None)
-
-def get_media_config(media_code) -> MediaTypeConfig:
-    """根据媒体编码获取媒体配置。"""
-    data = load_all_data()
-    media_code_str = str(media_code)  # 强制转为字符串
-    return data.get("config", {}).get("media_codes", {}).get(media_code_str, None)
+    
+    if item_type == "user":
+        return next((user for user in data.get("users", []) if user["user_id"] == item_id), None)
+    elif item_type == "site":
+        user = next((user for user in data.get("users", []) if user["user_id"] == item_id), None)
+        return next((site for site in user.get("sites", []) if site["code"] == sub_item_id), None) if user else None
+    elif item_type == "media":
+        return data.get("config", {}).get("media_codes", {}).get(str(item_id), None)
+    elif item_type == "config":
+        return data.get("config", {})
+    elif item_type == "media_codes":
+        return data.get("config", {}).get("media_codes", {})
+    elif item_type == "users":
+        return data.get("users", [])
+    return None
 
 @asynccontextmanager
 async def lifespan(app):
-    # 启动时初始化 browser_manager
+    # 启动初始化
     browser_manager = BrowserManager()
     await browser_manager.start_browser(headless=False)
     app.state.browser_manager = browser_manager
@@ -145,7 +137,7 @@ async def lifespan(app):
         app.state.refresh_task.cancel()
         print("Page refresh task stopped.")
     
-    # 关闭时自动关闭 browser_manager
+    # 关闭浏览器
     print("Stopping browser manager...")
     try:
         await browser_manager.stop_browser()
@@ -155,7 +147,6 @@ async def lifespan(app):
     print("Server shutdown.")
 
 app = FastAPI(lifespan=lifespan)
-# 挂载静态资源到/static路径，避免覆盖API接口
 app.mount("/static", StaticFiles(directory="server/static", html=True), name="static")
 
 # ------------------ 监控配置信息接口 ------------------
@@ -168,20 +159,17 @@ def get_sites():
 @app.get("/api/config")
 def get_config():
     """返回全局配置config部分。"""
-    data = load_all_data()
-    return data.get("config", {})
+    return get_config_item("config")
 
 @app.get("/api/config/media_codes")
 def get_media_codes():
     """返回config.media_codes部分。"""
-    data = load_all_data()
-    return data.get("config", {}).get("media_codes", {})
+    return get_config_item("media_codes")
 
 @app.get("/api/users")
 def get_users():
     """返回所有用户及其站点。"""
-    data = load_all_data()
-    return data.get("users", [])
+    return get_config_item("users")
 
 # ------------------ browser 操作相关接口 ------------------
 
@@ -207,31 +195,43 @@ async def api_restart_browser(request: Request):
 
 # ------------------ 监控任务相关接口 ------------------
 
-@app.post("/api/monitor/start")
-async def api_monitor_start(request: Request):
-    """启动指定用户、站点、url的Fetch/XHR监控任务。"""
-    params = await request.json()
+async def validate_monitor_params(params):
+    """验证监控参数"""
     user_id = params.get("user_id")
     site_code = params.get("site_code")
+    
     if not user_id: 
         raise HTTPException(status_code=400, detail="user_id为必填参数")
     if not site_code:
         raise HTTPException(status_code=400, detail="site_code为必填参数")
-    user = get_user_config(user_id)
+        
+    user = get_config_item("user", user_id)
     if not user:
         raise HTTPException(status_code=400, detail=f"user_id:{user_id} 不存在，请先添加用户")
-    site = get_site_config(user_id, site_code)
+        
+    site = get_config_item("site", user_id, site_code)
     if not site:
         raise HTTPException(status_code=400, detail=f"user_id:{user_id} site_code:{site_code} 不存在，请先添加站点")
-    media = get_media_config(site['code'])
+        
+    media = get_config_item("media", site_code)
     if not media:
         raise HTTPException(status_code=400, detail=f"user_id:{user_id} site_code:{site_code} 媒体类型不存在，请先去监控配置中维护媒体类型")
+        
+    return user_id, site_code, media
+
+@app.post("/api/monitor/start")
+async def api_monitor_start(request: Request):
+    """启动指定用户、站点、url的Fetch/XHR监控任务。"""
+    params = await request.json()
+    user_id, site_code, media = await validate_monitor_params(params)
+    
     # 唯一key
     task_key = f"{user_id}:{site_code}:{media['url']}"
+    
     # 检查是否已存在
     if hasattr(request.app.state, "monitor_tasks") and task_key in request.app.state.monitor_tasks:
         # 调用get_page
-        page = await request.app.state.browser_manager.get_page(str(user_id), str(site_code), media['url'])
+        await request.app.state.browser_manager.get_page(str(user_id), str(site_code), media['url'])
         raise HTTPException(status_code=400, detail="该监控任务已存在")
     
     # 先获取页面，用于定时刷新
@@ -258,13 +258,7 @@ async def api_monitor_start(request: Request):
 async def api_monitor_stop(request: Request):
     """暂停指定监控任务。"""
     params = await request.json()
-    user_id = params.get("user_id")
-    site_code = params.get("site_code")
-    if not user_id or not site_code:
-        raise HTTPException(status_code=400, detail="user_id、site_code均为必填参数")
-    media = get_media_config(site_code)
-    if not media:
-        raise HTTPException(status_code=400, detail=f"user_id:{user_id} site_code:{site_code} 媒体类型不存在，请先去监控配置中维护媒体类型")
+    user_id, site_code, media = await validate_monitor_params(params)
     task_key = f"{user_id}:{site_code}:{media['url']}"
     
     # 从任务字典中移除
@@ -287,13 +281,8 @@ async def api_monitor_stop(request: Request):
 async def api_monitor_restart(request: Request):
     """重启指定监控任务。"""
     params = await request.json()
-    user_id = params.get("user_id")
-    site_code = params.get("site_code")
-    if not user_id or not site_code:
-        raise HTTPException(status_code=400, detail="user_id、site_code均为必填参数")
-    media = get_media_config(site_code)
-    if not media:
-        raise HTTPException(status_code=400, detail=f"user_id:{user_id} site_code:{site_code} 媒体类型不存在，请先去监控配置中维护媒体类型")
+    user_id, site_code, media = await validate_monitor_params(params)
+    
     # 先停再启
     task_key = f"{user_id}:{site_code}:{media['url']}"
     tasks = getattr(request.app.state, "monitor_tasks", {})
@@ -324,14 +313,7 @@ async def api_monitor_restart(request: Request):
 async def api_monitor_status(request: Request):
     """查询指定监控任务的状态。"""
     params = await request.json()
-    user_id = params.get("user_id")
-    site_code = params.get("site_code")
-    
-    if not user_id or not site_code:
-        raise HTTPException(status_code=400, detail="user_id、site_code均为必填参数")
-    media = get_media_config(site_code)
-    if not media:
-        raise HTTPException(status_code=400, detail=f"user_id:{user_id} site_code:{site_code} 媒体类型不存在，请先去监控配置中维护媒体类型")
+    user_id, site_code, media = await validate_monitor_params(params)
 
     task_key = f"{user_id}:{site_code}:{media['url']}"
     tasks = getattr(request.app.state, "monitor_tasks", {})
@@ -343,7 +325,5 @@ async def api_monitor_status(request: Request):
 
 @app.get("/")
 def root():
-    """
-    访问根路径时自动重定向到前端静态页面
-    """
+    """访问根路径时自动重定向到前端静态页面"""
     return RedirectResponse(url="/static")
