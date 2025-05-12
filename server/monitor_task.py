@@ -67,7 +67,7 @@ async def print_all_headers(request, user_id, site_code, url):
 
 # 向sites.json.config.cookie_api发送cookie
 def send_cookie(cookie, user_id, site_code):
-    print("🐂🍺坏了，发射cookie")
+    print("获取Cookie，发射Cookie")
     from server.app import load_all_data
     data = load_all_data()
     config = data["config"]

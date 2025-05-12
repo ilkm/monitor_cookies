@@ -20,7 +20,15 @@ class BrowserManager:
 
         self.playwright = await async_playwright().start()
         try:
-            self.browser = await self.playwright.chromium.launch(headless=headless)
+            self.browser = await self.playwright.chromium.launch(
+                headless=headless,
+                # 使用相对路径，指向项目根目录下的 Chrome-bin/chrome.exe
+                executable_path=os.path.abspath(os.path.join(os.path.dirname(__file__), '../Chrome-bin/chrome.exe')),
+                args=[
+                        '--no-sandbox',
+                        "--disable-blink-features=AutomationControlled"
+                    ]
+            )
             print("Browser started successfully.")
             # TODO: 实现浏览器保活/重建逻辑
             # 这可能涉及定期检查 browser.is_connected()
