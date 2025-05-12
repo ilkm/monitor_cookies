@@ -123,16 +123,10 @@ class BrowserManager:
         print(f"Creating new context for user_id: {user_id}")
         try:
             context = await self.browser.new_context(storage_state=storage_state)
-            # 为 context 关闭添加监听器以便从追踪中移除
-            # context.on("close", lambda: self.contexts.pop(user_id, None)) # 需要 async lambda 或包装器
             self.contexts[user_id] = context
             return context
         except Exception as e:
             print(f"Error creating new context for user_id {user_id}: {e}")
-            # 如果因存储状态创建 context 失败，清理存储状态文件，避免死循环
-            # if storage_state and os.path.exists(storage_state_path):
-            #     print(f"Removing potentially corrupt storage state file: {storage_state_path}")
-            #     os.remove(storage_state_path)
             raise
 
     async def get_page(self, user_id: str, site_code: str, url: str):
@@ -169,21 +163,20 @@ class BrowserManager:
         if user_id in self.contexts:
             if save_state:
                 await self.save_context_storage(user_id)
-
             context = self.contexts.pop(user_id)
             await context.close() # 这也会关闭该 context 下所有页面。
-            
+
             # 从追踪中移除相关页面
             pages_to_remove = [pk for pk in self.pages if pk[0] == user_id]
             for pk in pages_to_remove:
-                # context.close() 已关闭页面，这里只需从字典移除
                 del self.pages[pk]
             print(f"Closed context and associated pages for user_id: {user_id}")
         else:
             print(f"No active context found for user_id: {user_id} to close.")
 
     async def close_page(self, user_id: str, site_code: str):
-        """关闭指定页面。"""
+        """关闭指定页面，关闭前先保存一次 storage_state。"""
+        await self.save_context_storage(user_id)
         page_key = (user_id, site_code)
         if page_key in self.pages:
             page = self.pages.pop(page_key)
