@@ -1,7 +1,19 @@
 import uvicorn
-from server.app import app, get_local_ip  # FastAPI app 及获取本机IP方法
+from server.app import app
+import socket
+
+def get_local_ip():
+    """获取本机局域网IP地址"""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # 连接到一个外部IP（不需要实际连通）
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+    return ip
 
 if __name__ == "__main__":
-    local_ip = get_local_ip()
-    print(f"服务已启动，可通过 http://{local_ip}:8000 在局域网访问")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=get_local_ip(), port=8000)

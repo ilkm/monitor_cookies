@@ -203,7 +203,7 @@ async def api_monitor_stop(request: Request):
         raise HTTPException(status_code=404, detail=f"未找到监控任务: {task_key}")
     task.cancel()
     del tasks[task_key]
-    await request.app.state.browser_manager.close_page(user_id, site_code)
+    await request.app.state.browser_manager.close_page(str(user_id), str(site_code))
     return {"msg": f"已暂停监控任务: {task_key}"}
 
 @app.post("/api/monitor/restart")
