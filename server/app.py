@@ -9,8 +9,6 @@ from browser_manager.manager import BrowserManager
 import server.monitor_task
 import asyncio
 from fastapi.responses import RedirectResponse
-import socket
-import uvicorn
 
 # 获取当前文件（app.py）所在目录的上一级目录（即项目根目录）
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -150,14 +148,16 @@ async def api_restart_browser(request: Request):
     await request.app.state.browser_manager.restart_browser()
     return {"msg": "浏览器已重启"}
 
-@app.post("/api/browser/page")
-async def api_get_page(request: Request):
-    """获取或创建指定用户、站点的页面。"""
+# ------------------ 监控任务相关接口 ------------------
+
+@app.post("/api/monitor/start")
+async def api_monitor_start(request: Request):
+    """启动指定用户、站点、url的Fetch/XHR监控任务。"""
     params = await request.json()
-    user_id = params["user_id"]
+    user_id = params.get("user_id")
+    site_code = params.get("site_code")
     if not user_id: 
         raise HTTPException(status_code=400, detail="user_id为必填参数")
-    site_code = params["site_code"]
     if not site_code:
         raise HTTPException(status_code=400, detail="site_code为必填参数")
     user = get_user_config(user_id)
@@ -167,44 +167,6 @@ async def api_get_page(request: Request):
     if not site:
         raise HTTPException(status_code=400, detail=f"user_id:{user_id} site_code:{site_code} 不存在，请先添加站点")
     media = get_media_config(site['code'])
-    if not media:
-        raise HTTPException(status_code=400, detail=f"user_id:{user_id} site_code:{site_code} 媒体类型不存在，请先去监控配置中维护媒体类型")
-    context = await request.app.state.browser_manager.get_context(user_id)
-    page = await request.app.state.browser_manager.get_page(user_id, site_code, media['url'])
-    return {"msg": f"用户 {user_id} 站点 {site_code} 的页面已获取/创建"}
-
-@app.post("/api/browser/context/close")
-async def api_close_context(request: Request):
-    """关闭指定用户的浏览器会话。"""
-    params = await request.json()
-    user_id = params["user_id"]
-    if not user_id:
-        raise HTTPException(status_code=400, detail="user_id为必填参数")
-    await request.app.state.browser_manager.close_context(user_id)
-    return {"msg": f"用户 {user_id} 的浏览器会话已关闭"}
-
-@app.post("/api/browser/page/close")
-async def api_close_page(request: Request):
-    """关闭指定用户、站点的页面。"""
-    params = await request.json()
-    user_id = params["user_id"]
-    if not user_id:
-        raise HTTPException(status_code=400, detail="user_id为必填参数")
-    site_code = params["site_code"]
-    if not site_code:
-        raise HTTPException(status_code=400, detail="site_code为必填参数")
-    await request.app.state.browser_manager.close_page(user_id, site_code)
-    return {"msg": f"用户 {user_id} 站点 {site_code} 的页面已关闭"}
-
-@app.post("/api/monitor/fetch/start")
-async def api_monitor_fetch_start(request: Request):
-    """启动指定用户、站点、url的Fetch/XHR监控任务。"""
-    params = await request.json()
-    user_id = params.get("user_id")
-    site_code = params.get("site_code")
-    if not user_id or not site_code:
-        raise HTTPException(status_code=400, detail="user_id、site_code均为必填参数")
-    media = get_media_config(site_code)
     if not media:
         raise HTTPException(status_code=400, detail=f"user_id:{user_id} site_code:{site_code} 媒体类型不存在，请先去监控配置中维护媒体类型")
     # 唯一key
@@ -223,8 +185,8 @@ async def api_monitor_fetch_start(request: Request):
     request.app.state.monitor_tasks[task_key] = task
     return {"msg": f"已启动监控任务: {task_key}"}
 
-@app.post("/api/monitor/fetch/stop")
-async def api_monitor_fetch_stop(request: Request):
+@app.post("/api/monitor/stop")
+async def api_monitor_stop(request: Request):
     """暂停指定监控任务。"""
     params = await request.json()
     user_id = params.get("user_id")
@@ -241,10 +203,11 @@ async def api_monitor_fetch_stop(request: Request):
         raise HTTPException(status_code=404, detail=f"未找到监控任务: {task_key}")
     task.cancel()
     del tasks[task_key]
+    await request.app.state.browser_manager.close_page(user_id, site_code)
     return {"msg": f"已暂停监控任务: {task_key}"}
 
-@app.post("/api/monitor/fetch/restart")
-async def api_monitor_fetch_restart(request: Request):
+@app.post("/api/monitor/restart")
+async def api_monitor_restart(request: Request):
     """重启指定监控任务。"""
     params = await request.json()
     user_id = params.get("user_id")
@@ -270,8 +233,8 @@ async def api_monitor_fetch_restart(request: Request):
     tasks[task_key] = task
     return {"msg": f"已重启监控任务: {task_key}"}
 
-@app.post("/api/monitor/fetch/status")
-async def api_monitor_fetch_status(request: Request):
+@app.post("/api/monitor/status")
+async def api_monitor_status(request: Request):
     """查询指定监控任务的状态。"""
     params = await request.json()
     user_id = params.get("user_id")
@@ -297,21 +260,3 @@ def root():
     访问根路径时自动重定向到前端静态页面
     """
     return RedirectResponse(url="/static")
-
-def get_local_ip():
-    """获取本机局域网IP地址"""
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # 连接到一个外部IP（不需要实际连通）
-        s.connect(('8.8.8.8', 80))
-        ip = s.getsockname()[0]
-    except Exception:
-        ip = '127.0.0.1'
-    finally:
-        s.close()
-    return ip
-
-if __name__ == "__main__":
-    local_ip = get_local_ip()
-    print(f"服务已启动，可通过 http://{local_ip}:8000 在局域网访问")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
