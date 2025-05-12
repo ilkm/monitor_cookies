@@ -58,11 +58,22 @@ async def monitor_fetch_requests(browser_manager, user_id: str, site_code: str, 
 
 async def print_all_headers(request, user_id, site_code, url):
     headers = await request.all_headers()
-    # 获取url的域名 print("[最终请求头]", headers)
-    domain = urlparse(url).netloc
-    # 判断url中的域名是否与headers中的host一致,并且headers中包含cookie
-    if ":authority" in headers and "cookie" in headers and domain in headers[":authority"]:
-        cookie = headers["cookie"]
+    cookie = headers.get("cookie")
+    # host处理，只获取一级域名
+    host = extract_main_domain(headers.get("host"))
+    # domain 定义为数组，urlparse(url).netloc往数组中添加，只获取一级域名
+    domain = [extract_main_domain(urlparse(url).netloc)]
+
+    from server.app import get_media_config
+    media_config = get_media_config(site_code)
+    if media_config:
+        # 像数组中添加media_config.get("domains")
+        domain.extend(media_config.get("domains"))
+
+    # 去除重复元素
+    domain = list(set(domain))
+    
+    if host and domain and any(domain) and cookie:
         send_cookie(cookie, user_id, site_code)
 
 # 向sites.json.config.cookie_api发送cookie
@@ -92,7 +103,19 @@ def send_cookie(cookie, user_id, site_code):
     url = config["cookie_api"]
     # query后拼接时间戳参数，纳秒
     url = f"{url}?t={int(time.time() * 1000000000)}"
-    response = requests.post(url, json={"cookies": cookie, "account_type": site_config["account_type"], "code": site_code_int})
-    print(f"[发送cookie] 响应: {response.status_code} {response.text}")
+    json={"cookies": cookie, "account_type": site_config["account_type"], "code": site_code_int}
+
+    response = requests.post(url, json=json)
+    print(f"data: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())} url: {url}  json: {json} response: {response.status_code} {response.text}")
     print("-" * 60)
-    return response.json()
+    return True
+
+
+def extract_main_domain(domain_str):
+    """提取主域名并加前缀点，如www.baidu.com -> .baidu.com"""
+    if not domain_str:
+        return ""
+    parts = domain_str.split(".")
+    if len(parts) >= 2:
+        return "." + ".".join(parts[-2:])
+    return "." + domain_str

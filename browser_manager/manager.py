@@ -30,9 +30,6 @@ class BrowserManager:
                     ]
             )
             print("Browser started successfully.")
-            # TODO: 实现浏览器保活/重建逻辑
-            # 这可能涉及定期检查 browser.is_connected()
-            # 并在断开时尝试重启。
         except Exception as e:
             print(f"Error starting browser: {e}")
             if self.playwright:
@@ -154,8 +151,8 @@ class BrowserManager:
         self.pages[page_key] = page
         print(f"Created new page for user_id: {user_id}, site_code: {site_code}")
 
-        await page.goto(url, timeout=20000)
-        await page.wait_for_load_state('networkidle', timeout=10000)
+        if page.url == "about:blank":
+            await page.goto(url, timeout=20000)
         return page
 
     async def close_context(self, user_id: str, save_state: bool = True):
