@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from browser_manager.manager import BrowserManager
 import server.monitor_task
 import asyncio
+import traceback
 from fastapi.responses import RedirectResponse
 
 # 获取当前文件（app.py）所在目录的上一级目录（即项目根目录）
@@ -15,6 +16,46 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_DIR = BASE_DIR  # 现在config目录就是根目录
 SITES_CONFIG_FILE = os.path.join(CONFIG_DIR, "sites.json")
 os.makedirs(CONFIG_DIR, exist_ok=True)
+
+# 页面刷新定时任务
+async def periodic_refresh_pages(app):
+    """每5分钟刷新一次所有正在监控的页面"""
+    while True:
+        try:
+            await asyncio.sleep(300)  # 5分钟 = 300秒
+            
+            # 获取所有监控任务
+            tasks = getattr(app.state, "monitor_tasks", {})
+            pages = getattr(app.state, "monitor_pages", {})
+            
+            if not pages:
+                print("[定时刷新] 没有正在监控的页面")
+                continue
+                
+            print(f"[定时刷新] 开始刷新 {len(pages)} 个页面")
+            
+            # 遍历所有页面并刷新
+            for task_key, page in list(pages.items()):
+                try:
+                    # 检查对应的任务是否仍在运行
+                    task = tasks.get(task_key)
+                    if task and not task.done() and not task.cancelled():
+                        print(f"[定时刷新] 刷新页面: {task_key}")
+                        await page.reload()
+                        print(f"[定时刷新] 页面刷新成功: {task_key}")
+                    else:
+                        # 任务已结束，从页面字典中移除
+                        print(f"[定时刷新] 任务已结束，移除页面: {task_key}")
+                        pages.pop(task_key, None)
+                except Exception as e:
+                    print(f"[异常] 刷新页面失败: {task_key}, 错误: {e}\n{traceback.format_exc()}")
+        except asyncio.CancelledError:
+            print("[定时刷新] 定时任务被取消")
+            break
+        except Exception as e:
+            print(f"[异常] 定时刷新任务异常: {e}\n{traceback.format_exc()}")
+            # 出错后等待一段时间再继续
+            await asyncio.sleep(60)
 
 class SiteConfig(BaseModel):
     code: int  # 站点编码
@@ -85,9 +126,25 @@ async def lifespan(app):
     browser_manager = BrowserManager()
     await browser_manager.start_browser(headless=False)
     app.state.browser_manager = browser_manager
+    
+    # 初始化监控任务和页面字典
+    app.state.monitor_tasks = {}
+    app.state.monitor_pages = {}
+    
+    # 启动定时刷新页面任务
+    app.state.refresh_task = asyncio.create_task(periodic_refresh_pages(app))
+    
     print("Browser manager started.")
+    print("Page refresh task started (every 5 minutes).")
     print(f"Site configurations will be loaded from: {os.path.abspath(SITES_CONFIG_FILE)}")
+    
     yield
+    
+    # 关闭时取消定时刷新任务
+    if hasattr(app.state, "refresh_task"):
+        app.state.refresh_task.cancel()
+        print("Page refresh task stopped.")
+    
     # 关闭时自动关闭 browser_manager
     print("Stopping browser manager...")
     try:
@@ -176,6 +233,16 @@ async def api_monitor_start(request: Request):
         # 调用get_page
         page = await request.app.state.browser_manager.get_page(str(user_id), str(site_code), media['url'])
         raise HTTPException(status_code=400, detail="该监控任务已存在")
+    
+    # 先获取页面，用于定时刷新
+    try:
+        page = await request.app.state.browser_manager.get_page(str(user_id), str(site_code), media['url'])
+        # 存储页面对象，用于定时刷新
+        request.app.state.monitor_pages[task_key] = page
+    except Exception as e:
+        print(f"[异常] 获取页面失败: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"获取页面失败: {e}")
+    
     # 启动任务
     task = asyncio.create_task(
         server.monitor_task.monitor_fetch_requests(
@@ -199,12 +266,20 @@ async def api_monitor_stop(request: Request):
     if not media:
         raise HTTPException(status_code=400, detail=f"user_id:{user_id} site_code:{site_code} 媒体类型不存在，请先去监控配置中维护媒体类型")
     task_key = f"{user_id}:{site_code}:{media['url']}"
+    
+    # 从任务字典中移除
     tasks = getattr(request.app.state, "monitor_tasks", {})
     task = tasks.get(task_key)
     if not task:
         raise HTTPException(status_code=404, detail=f"未找到监控任务: {task_key}")
     task.cancel()
     del tasks[task_key]
+    
+    # 从页面字典中移除
+    pages = getattr(request.app.state, "monitor_pages", {})
+    if task_key in pages:
+        del pages[task_key]
+    
     await request.app.state.browser_manager.close_page(str(user_id), str(site_code))
     return {"msg": f"已暂停监控任务: {task_key}"}
 
@@ -226,6 +301,16 @@ async def api_monitor_restart(request: Request):
     if old_task:
         old_task.cancel()
         del tasks[task_key]
+    
+    # 先获取页面，用于定时刷新
+    try:
+        page = await request.app.state.browser_manager.get_page(str(user_id), str(site_code), media['url'])
+        # 存储页面对象，用于定时刷新
+        request.app.state.monitor_pages[task_key] = page
+    except Exception as e:
+        print(f"[异常] 获取页面失败: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"获取页面失败: {e}")
+    
     # 启动新任务
     task = asyncio.create_task(
         server.monitor_task.monitor_fetch_requests(

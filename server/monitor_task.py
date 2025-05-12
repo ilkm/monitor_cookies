@@ -51,22 +51,15 @@ async def monitor_fetch_requests(browser_manager, user_id: str, site_code: str, 
     return requests 
 
 async def print_all_headers(request, user_id, site_code, url):
-    headers = await request.all_headers()
-    cookie = headers.get("cookie")
-    # host处理，只获取一级域名
-    host = extract_main_domain(headers.get("host"))
-    # domain 定义为数组，urlparse(url).netloc往数组中添加，只获取一级域名
-    domain = [extract_main_domain(urlparse(url).netloc)]
-
     from server.app import get_media_config
     media_config = get_media_config(site_code)
+    headers = await request.all_headers()
+    cookie = headers.get("cookie")
+    host = extract_main_domain(headers.get(media_config.get("host")))
+    domain = [extract_main_domain(urlparse(url).netloc)]
     if media_config:
-        # 像数组中添加media_config.get("domains")
         domain.extend(media_config.get("domains"))
-
-    # 去除重复元素
     domain = list(set(domain))
-    
     if host and domain and any(domain) and cookie:
         send_cookie(cookie, user_id, site_code)
 
