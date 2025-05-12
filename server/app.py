@@ -9,6 +9,8 @@ from browser_manager.manager import BrowserManager
 import server.monitor_task
 import asyncio
 from fastapi.responses import RedirectResponse
+import socket
+import uvicorn
 
 # 获取当前文件（app.py）所在目录的上一级目录（即项目根目录）
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -296,6 +298,20 @@ def root():
     """
     return RedirectResponse(url="/static")
 
+def get_local_ip():
+    """获取本机局域网IP地址"""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # 连接到一个外部IP（不需要实际连通）
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+    return ip
+
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000) 
+    local_ip = get_local_ip()
+    print(f"服务已启动，可通过 http://{local_ip}:8000 在局域网访问")
+    uvicorn.run(app, host="0.0.0.0", port=8000)
