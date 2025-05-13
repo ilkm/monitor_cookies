@@ -20,10 +20,13 @@ os.makedirs(BASE_DIR, exist_ok=True)
 async def periodic_refresh_pages(app):
     """每5分钟刷新一次所有正在监控的页面"""
     config = get_config_item("config")
-    refresh_interval = config.get("refresh_interval", 5)
+    refresh_interval = config.get("refresh_interval", 3000)
+    # 用户活动检测时间阈值（秒），默认60秒内有活动则认为用户正在操作
+    user_activity_threshold = config.get("user_activity_threshold", 60)
+    
     while True:
         try:
-            await asyncio.sleep(refresh_interval)  # 5分钟 = 300秒
+            await asyncio.sleep(refresh_interval)  # 默认5分钟刷新一次
             tasks = getattr(app.state, "monitor_tasks", {})
             pages = getattr(app.state, "monitor_pages", {})
             
@@ -31,13 +34,42 @@ async def periodic_refresh_pages(app):
                 print("[定时刷新] 没有正在监控的页面")
                 continue
                 
-            print(f"[定时刷新] 开始刷新 {len(pages)} 个页面")
+            print(f"[定时刷新] 开始检查 {len(pages)} 个页面")
             
             for task_key, page in list(pages.items()):
                 try:
                     task = tasks.get(task_key)
                     if task and not task.done() and not task.cancelled():
-                        await page.reload()
+                        # 检查页面是否有用户活动
+                        try:
+                            # 注入检测代码（如果尚未注入）
+                            await page.evaluate("""
+                                if (!window._lastUserActivity) {
+                                    window._lastUserActivity = Date.now();
+                                    document.addEventListener('mousemove', () => { window._lastUserActivity = Date.now(); });
+                                    document.addEventListener('keydown', () => { window._lastUserActivity = Date.now(); });
+                                    document.addEventListener('click', () => { window._lastUserActivity = Date.now(); });
+                                    document.addEventListener('scroll', () => { window._lastUserActivity = Date.now(); });
+                                }
+                            """)
+                            
+                            # 获取最后活动时间
+                            last_activity = await page.evaluate("window._lastUserActivity || 0")
+                            current_time = await page.evaluate("Date.now()")
+                            idle_time = (current_time - last_activity) / 1000  # 转为秒
+                            
+                            if idle_time < user_activity_threshold:
+                                print(f"[定时刷新] 检测到用户活动，跳过刷新: {task_key}, 闲置时间: {idle_time:.1f}秒")
+                                continue
+                            
+                            # 用户长时间未操作，可以安全刷新
+                            print(f"[定时刷新] 用户无活动，执行刷新: {task_key}, 闲置时间: {idle_time:.1f}秒")
+                            await page.reload()
+                        except Exception as activity_error:
+                            # 检测失败，保守处理，不刷新页面
+                            print(f"[警告] 检测用户活动失败: {task_key}, 错误: {activity_error}")
+                            # 如果检测失败则默认刷新
+                            await page.reload()
                     else:
                         pages.pop(task_key, None)
                 except Exception as e:

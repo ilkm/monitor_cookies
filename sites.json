@@ -203,7 +203,8 @@
         }
     ],
     "config": {
-        "refresh_interval": 5,
+        "refresh_interval": 300,
+        "user_activity_threshold": 60,
         "cookie_api": "http://127.0.0.1:8000/api/refreshCookie",
         "headless_mode": false,
         "performance_mode": false,
