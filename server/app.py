@@ -138,6 +138,8 @@ def get_config_item(item_type, item_id=None, sub_item_id=None):
         return next((site for site in user.get("sites", []) if site["code"] == sub_item_id), None) if user else None
     elif item_type == "media":
         return data.get("config", {}).get("media_codes", {}).get(str(item_id), None)
+    elif item_type == "account_types":
+        return data.get("config", {}).get("account_types", {})
     elif item_type == "config":
         return data.get("config", {})
     elif item_type == "media_codes":
